@@ -6,7 +6,7 @@ use core::panic::PanicInfo;
 #[unsafe(no_mangle)]
 unsafe extern "C" fn _start() -> ! { unsafe {
     core::arch::asm!(
-        "wfi",
+        "nop",
         options(noreturn)
     )
 }}
