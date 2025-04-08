@@ -1,7 +1,7 @@
 #!/bin/bash
 
 APP_1=payload/apps1.bin
-# APP_2=payload/apps2.bin
+APP_2=payload/apps2.bin
 OUT_APP=payload/apps.bin
 
 TMP_APP=payload/tmp.bin
@@ -13,13 +13,13 @@ TMP_APP=payload/tmp.bin
     # 生成 APP_1
     cd ../app_1 && ./scripts/objdump.sh
     # 生成 APP_2
-    # cd ../app_2 && ./scripts/objdump.sh
+    cd ../app_2 && ./scripts/objdump.sh
 
 # fi
 
 cd ../arceos || exit 
 
-cat $APP_1  > $TMP_APP
+cat $APP_1 $APP_2 > $TMP_APP
 
 
 # # 能否使用dd? 可以,但是这样会稍微复杂一些
@@ -31,4 +31,4 @@ dd if=/dev/zero of=$OUT_APP bs=1M count=32 2>/dev/null
 
 dd if=$TMP_APP of=$OUT_APP bs=1 conv=notrunc
 
-rm $APP_1 
+rm $APP_1 $APP_2 
