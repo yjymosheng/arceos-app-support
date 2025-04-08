@@ -1,4 +1,4 @@
-/target
+*/target
 /.vscode
 .DS_Store
 *.asm
@@ -8,3 +8,4 @@
 *.bin
 qemu.log
 rusty-tags.vi
+*.lock
