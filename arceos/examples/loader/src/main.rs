@@ -73,27 +73,15 @@ fn main() {
 
 
 	// println!("Execute app ...");
-    let _arg0: u8 = b'A';
-    let code : u8 =2; 
 
     // execute app
     unsafe { core::arch::asm!("
-        li      t0, {abi_num}
-        slli    t0, t0, 3
-        la      t1, {abi_table}
-        add     t1, t1, t0
-        ld      t1, (t1)
-        jalr    t1
-        li      t2, {run_start}
-        jalr    t2
+        la      a7, {abi_table}
+        jalr    ra, t2
         j       .",
-        run_start = const RUN_START,
+        in("t2") start_1  ,
         abi_table = sym ABI_TABLE,
-        //abi_num = const SYS_HELLO,
-        abi_num = const SYS_TERMINATE,
-        in("a0") code,
     )}
-
     // // execute app
     // unsafe {
     //     core::arch::asm!(
