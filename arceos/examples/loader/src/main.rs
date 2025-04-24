@@ -1,9 +1,11 @@
 #![cfg_attr(feature = "axstd", no_std)]
 #![cfg_attr(feature = "axstd", no_main)]
 #![feature(asm_const)]
+
 #[cfg(feature = "axstd")]
 use axstd::println;
-
+#[cfg(feature = "axstd")]
+use axstd::process::exit;
 const PLASH_START: usize = 0xffff_ffc0_2200_0000;
 
 #[cfg_attr(feature = "axstd", no_mangle)]
@@ -33,7 +35,7 @@ fn main() {
 
     let (code_app_1, size_app_1) = load_app(&mut apps_start);
 
-    println!("debug : start {:x}", apps_start as usize);
+    // println!("debug : start {:x}", apps_start as usize);
     let (code_app_2, size_app_2) = load_app(&mut apps_start);
 
     println!("Load payload ok!");
@@ -63,19 +65,71 @@ fn main() {
 
     println!("Execute app ...");
 
+
+
+    register_abi(SYS_HELLO, abi_hello as usize);
+    register_abi(SYS_PUTCHAR, abi_putchar as usize);
+    register_abi(SYS_TERMINATE, abi_shutdown as usize);
+
+
+	// println!("Execute app ...");
+    let _arg0: u8 = b'A';
+    let code : u8 =2; 
+
     // execute app
-    unsafe {
-        core::arch::asm!(
-            // 保存 t1 和 t2 到栈中
+    unsafe { core::arch::asm!("
+        li      t0, {abi_num}
+        slli    t0, t0, 3
+        la      t1, {abi_table}
+        add     t1, t1, t0
+        ld      t1, (t1)
+        jalr    t1
+        li      t2, {run_start}
+        jalr    t2
+        j       .",
+        run_start = const RUN_START,
+        abi_table = sym ABI_TABLE,
+        //abi_num = const SYS_HELLO,
+        abi_num = const SYS_TERMINATE,
+        in("a0") code,
+    )}
 
-            "
-            jalr t2 
+    // // execute app
+    // unsafe {
+    //     core::arch::asm!(
+    //         // 保存 t1 和 t2 到栈中
 
-            jalr t1 
+    //         "
+    //         jalr t2 
 
-            j .",                 
-            in("t2") start_1,
-            in("t1") start_2,
-        )
-    }
+    //         jalr t1 
+
+    //         j .",                 
+    //         in("t2") start_1,
+    //         in("t1") start_2,
+    //     )
+    // }
+}
+
+
+const SYS_HELLO: usize = 1;
+const SYS_PUTCHAR: usize = 2;
+const SYS_TERMINATE :usize = 3; 
+
+static mut ABI_TABLE: [usize; 16] = [0; 16];
+
+fn register_abi(num: usize, handle: usize) {
+    unsafe { ABI_TABLE[num] = handle; }
+}
+
+fn abi_hello() {
+    println!("[ABI:Hello] Hello, Apps!");
+}
+
+fn abi_putchar(c: char) {
+    println!("[ABI:Print] {c}");
+}
+
+fn abi_shutdown (code: u8) -> ! {
+    exit(code.into() )
 }
